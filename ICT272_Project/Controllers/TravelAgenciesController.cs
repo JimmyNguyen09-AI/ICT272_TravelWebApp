@@ -22,7 +22,7 @@ namespace ICT272_Project.Controllers
         // GET: TravelAgencies
         public async Task<IActionResult> Index()
         {
-            return View(await _context.TravelAgency.ToListAsync());
+            return View(await _context.TravelAgencies.ToListAsync());
         }
 
         // GET: TravelAgencies/Details/5
@@ -33,7 +33,7 @@ namespace ICT272_Project.Controllers
                 return NotFound();
             }
 
-            var travelAgency = await _context.TravelAgency
+            var travelAgency = await _context.TravelAgencies
                 .FirstOrDefaultAsync(m => m.AgencyID == id);
             if (travelAgency == null)
             {
@@ -73,7 +73,7 @@ namespace ICT272_Project.Controllers
                 return NotFound();
             }
 
-            var travelAgency = await _context.TravelAgency.FindAsync(id);
+            var travelAgency = await _context.TravelAgencies.FindAsync(id);
             if (travelAgency == null)
             {
                 return NotFound();
@@ -124,7 +124,7 @@ namespace ICT272_Project.Controllers
                 return NotFound();
             }
 
-            var travelAgency = await _context.TravelAgency
+            var travelAgency = await _context.TravelAgencies
                 .FirstOrDefaultAsync(m => m.AgencyID == id);
             if (travelAgency == null)
             {
@@ -139,10 +139,10 @@ namespace ICT272_Project.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var travelAgency = await _context.TravelAgency.FindAsync(id);
+            var travelAgency = await _context.TravelAgencies.FindAsync(id);
             if (travelAgency != null)
             {
-                _context.TravelAgency.Remove(travelAgency);
+                _context.TravelAgencies.Remove(travelAgency);
             }
 
             await _context.SaveChangesAsync();
@@ -151,7 +151,7 @@ namespace ICT272_Project.Controllers
 
         private bool TravelAgencyExists(int id)
         {
-            return _context.TravelAgency.Any(e => e.AgencyID == id);
+            return _context.TravelAgencies.Any(e => e.AgencyID == id);
         }
     }
 }

@@ -4,6 +4,7 @@ using ICT272_Project.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ICT272_Project.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250912144931_InitDb")]
+    partial class InitDb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -46,8 +49,6 @@ namespace ICT272_Project.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("FeedbackID");
-
-                    b.HasIndex("TouristID");
 
                     b.ToTable("Feedbacks");
                 });
@@ -160,17 +161,6 @@ namespace ICT272_Project.Migrations
                     b.ToTable("TravelAgencies");
                 });
 
-            modelBuilder.Entity("ICT272_Project.Models.Feedback", b =>
-                {
-                    b.HasOne("ICT272_Project.Models.Tourist", "Tourist")
-                        .WithMany("Feedbacks")
-                        .HasForeignKey("TouristID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tourist");
-                });
-
             modelBuilder.Entity("ICT272_Project.Models.TravelAgency", b =>
                 {
                     b.HasOne("ICT272_Project.Models.TourPackage", null)
@@ -181,11 +171,6 @@ namespace ICT272_Project.Migrations
             modelBuilder.Entity("ICT272_Project.Models.TourPackage", b =>
                 {
                     b.Navigation("TravelAgency");
-                });
-
-            modelBuilder.Entity("ICT272_Project.Models.Tourist", b =>
-                {
-                    b.Navigation("Feedbacks");
                 });
 #pragma warning restore 612, 618
         }

@@ -22,7 +22,7 @@ namespace ICT272_Project.Controllers
         // GET: TourPackages
         public async Task<IActionResult> Index()
         {
-            return View(await _context.TourPackage.ToListAsync());
+            return View(await _context.TourPackages.ToListAsync());
         }
 
         // GET: TourPackages/Details/5
@@ -33,7 +33,7 @@ namespace ICT272_Project.Controllers
                 return NotFound();
             }
 
-            var tourPackage = await _context.TourPackage
+            var tourPackage = await _context.TourPackages
                 .FirstOrDefaultAsync(m => m.PackageID == id);
             if (tourPackage == null)
             {
@@ -73,7 +73,7 @@ namespace ICT272_Project.Controllers
                 return NotFound();
             }
 
-            var tourPackage = await _context.TourPackage.FindAsync(id);
+            var tourPackage = await _context.TourPackages.FindAsync(id);
             if (tourPackage == null)
             {
                 return NotFound();
@@ -124,7 +124,7 @@ namespace ICT272_Project.Controllers
                 return NotFound();
             }
 
-            var tourPackage = await _context.TourPackage
+            var tourPackage = await _context.TourPackages
                 .FirstOrDefaultAsync(m => m.PackageID == id);
             if (tourPackage == null)
             {
@@ -139,10 +139,10 @@ namespace ICT272_Project.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var tourPackage = await _context.TourPackage.FindAsync(id);
+            var tourPackage = await _context.TourPackages.FindAsync(id);
             if (tourPackage != null)
             {
-                _context.TourPackage.Remove(tourPackage);
+                _context.TourPackages.Remove(tourPackage);
             }
 
             await _context.SaveChangesAsync();
@@ -151,7 +151,7 @@ namespace ICT272_Project.Controllers
 
         private bool TourPackageExists(int id)
         {
-            return _context.TourPackage.Any(e => e.PackageID == id);
+            return _context.TourPackages.Any(e => e.PackageID == id);
         }
     }
 }

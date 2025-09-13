@@ -11,9 +11,10 @@ namespace ICT272_Project.Models
 
         [Required]
         public int BookingID { get; set; }
-
         [Required]
         public int TouristID { get; set; }
+        [ForeignKey("TouristID")]
+        public Tourist Tourist { get; set; }
 
         [Range(1, 5)]
         public int Rating { get; set; }
@@ -23,4 +24,5 @@ namespace ICT272_Project.Models
         [DataType(DataType.Date)]
         public DateTime Date { get; set; } = DateTime.UtcNow;
     }
+
 }

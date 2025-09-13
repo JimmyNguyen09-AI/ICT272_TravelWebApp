@@ -9,6 +9,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddAuthentication("Cookies").AddCookie("Cookies", options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.AccessDeniedPath = "/Account/Denied";
+});
+
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -17,17 +25,13 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-builder.Services.AddAuthentication("Cookies").AddCookie("Cookies", options =>
-{
-    options.LoginPath = "/Account/Login";
-    options.AccessDeniedPath= "/Account/Denied";
-});
-builder.Services.AddAuthorization();
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
