@@ -1,8 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Authorization;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ICT272_Project.Models
 {
+    [Authorize(Roles = "Agency")]
     public class TravelAgency
     {
         [Key]
@@ -16,6 +18,8 @@ namespace ICT272_Project.Models
         [Required,StringLength(200, ErrorMessage ="Services offered text too long")]
         public string ServicesOffered { get; set; }
         public string ProfileImage { get; set; }
+
+        public ICollection<TourPackage> TourPackages { get; set; } = new List<TourPackage>();
 
          
     }
