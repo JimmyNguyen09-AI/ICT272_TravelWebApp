@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ICT272_Project.Models
@@ -8,8 +9,10 @@ namespace ICT272_Project.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int PackageID { get; set; }
-        [Required]
-        public string AgencyID { get; set; }
+        [ForeignKey("TravelAgency")]
+        public int AgencyID { get; set; }
+        [ValidateNever]
+        public TravelAgency TravelAgency { get; set; }
         [Required(ErrorMessage ="Title is required"), StringLength(150)]
         public string Title { get; set; }
         [Required(ErrorMessage ="Description is required")]
@@ -21,6 +24,5 @@ namespace ICT272_Project.Models
         [Required(ErrorMessage ="Group size must be between 1 and 50")]
         public int MaxGroupSize { get; set; }
 
-        public ICollection<TravelAgency> TravelAgency { get; set; }
     }
 }

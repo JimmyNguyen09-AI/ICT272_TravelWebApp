@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ICT272_Project.Data;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,10 +10,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddAuthentication("Cookies").AddCookie("Cookies", options =>
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie("Cookies", options =>
 {
     options.LoginPath = "/Account/Login";
-    options.AccessDeniedPath = "/Account/Denied";
+    options.LogoutPath = "/Account/Logout";
+    //options.AccessDeniedPath = "/Account/Denied";
 });
 
 builder.Services.AddAuthorization();

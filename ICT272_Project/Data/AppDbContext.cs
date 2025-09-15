@@ -12,5 +12,7 @@ namespace ICT272_Project.Data
 
         public DbSet<TourPackage> TourPackages => Set<TourPackage>();
         public DbSet<TravelAgency> TravelAgencies => Set<TravelAgency>();
+
+        public DbSet<User> Users => Set<User>();
     }
 }

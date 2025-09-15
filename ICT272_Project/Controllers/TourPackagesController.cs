@@ -46,6 +46,7 @@ namespace ICT272_Project.Controllers
         // GET: TourPackages/Create
         public IActionResult Create()
         {
+            ViewBag.Agencies = new SelectList(_context.TravelAgencies, "AgencyID", "AgencyName");
             return View();
         }
 
@@ -56,12 +57,14 @@ namespace ICT272_Project.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("PackageID,AgencyID,Title,Description,Duration,Price,MaxGroupSize")] TourPackage tourPackage)
         {
+
             if (ModelState.IsValid)
             {
                 _context.Add(tourPackage);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+            ViewBag.Agencies = new SelectList(_context.TravelAgencies, "AgencyID", "AgencyName");
             return View(tourPackage);
         }
 
