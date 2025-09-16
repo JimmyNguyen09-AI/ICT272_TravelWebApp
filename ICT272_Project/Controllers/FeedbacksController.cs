@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ICT272_Project.Data;
 using ICT272_Project.Models;
-
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 namespace ICT272_Project.Controllers
 {
     public class FeedbacksController : Controller
@@ -22,7 +21,10 @@ namespace ICT272_Project.Controllers
         // GET: Feedbacks
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Feedbacks.ToListAsync());
+            return View(await _context.Feedbacks
+               .Include(f => f.Tourist)
+               .OrderByDescending(f => f.Date)
+               .ToListAsync());
         }
 
         // GET: Feedbacks/Details/5
@@ -44,9 +46,21 @@ namespace ICT272_Project.Controllers
         }
 
         // GET: Feedbacks/Create
-        public IActionResult Create()
+        [Authorize(Roles = "Tourist")]
+        public async Task<IActionResult> Create()
         {
-            return View();
+            var tourist = await GetOrCreateCurrentTouristAsync();
+            if (tourist == null)
+            {
+                TempData["FeedbackError"] = "Unable to locate a tourist profile for your account.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            ViewBag.TouristName = tourist.FullName;
+            return View(new Feedback
+            {
+                TouristID = tourist.TouristID
+            });
         }
 
         // POST: Feedbacks/Create
@@ -54,8 +68,24 @@ namespace ICT272_Project.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("FeedbackID,BookingID,TouristID,Rating,Comment,Date")] Feedback feedback)
+        [Authorize(Roles = "Tourist")]
+        public async Task<IActionResult> Create([Bind("FeedbackID,BookingID,Rating,Comment")] Feedback feedback)
         {
+            var tourist = await GetOrCreateCurrentTouristAsync();
+            if (tourist == null)
+            {
+                TempData["FeedbackError"] = "Unable to locate a tourist profile for your account.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            feedback.TouristID = tourist.TouristID;
+            feedback.Date = DateTime.UtcNow;
+
+            ViewBag.TouristName = tourist.FullName;
+
+            ModelState.Remove(nameof(Feedback.TouristID));
+            ModelState.Remove(nameof(Feedback.Tourist));
+            ModelState.Remove(nameof(Feedback.Date));
             if (ModelState.IsValid)
             {
                 _context.Add(feedback);
@@ -99,6 +129,7 @@ namespace ICT272_Project.Controllers
                 {
                     _context.Update(feedback);
                     await _context.SaveChangesAsync();
+                    TempData["FeedbackMessage"] = "Thank you for sharing your feedback!";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -152,6 +183,45 @@ namespace ICT272_Project.Controllers
         private bool FeedbackExists(int id)
         {
             return _context.Feedbacks.Any(e => e.FeedbackID == id);
+        }
+        private async Task<Tourist?> GetOrCreateCurrentTouristAsync()
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return null;
+            }
+
+            var normalizedEmail = email.Trim().ToLower();
+            var tourist = await _context.Tourists.FirstOrDefaultAsync(t => t.Email.ToLower() == normalizedEmail);
+            if (tourist != null)
+            {
+                return tourist;
+            }
+
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdValue, out var userId))
+            {
+                return null;
+            }
+
+            var appUser = await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId);
+            if (appUser == null || !string.Equals(appUser.Role, "Tourist", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            tourist = new Tourist
+            {
+                FullName = appUser.UserName,
+                Email = appUser.Email,
+                PasswordHash = appUser.Password
+            };
+
+            _context.Tourists.Add(tourist);
+            await _context.SaveChangesAsync();
+
+            return tourist;
         }
     }
 }

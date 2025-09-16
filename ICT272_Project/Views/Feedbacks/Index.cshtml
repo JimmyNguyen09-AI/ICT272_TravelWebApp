@@ -1,23 +1,35 @@
 ﻿@model IEnumerable<ICT272_Project.Models.Feedback>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Feedback";
 }
 
-<h1>Index</h1>
+<h1 class="mb-3">Feedback</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
+@if (TempData["FeedbackMessage"] is string successMessage)
+{
+    <div class="alert alert-success" role="alert">@successMessage</div>
+}
+
+@if (TempData["FeedbackError"] is string errorMessage)
+{
+    <div class="alert alert-danger" role="alert">@errorMessage</div>
+}
+
+@if (User?.IsInRole("Tourist") == true)
+{
+    <p>
+        <a asp-action="Create" class="btn btn-primary">Leave Feedback</a>
+    </p>
+}
+
+<table class="table table-striped">
     <thead>
         <tr>
             <th>
                 @Html.DisplayNameFor(model => model.BookingID)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TouristID)
-            </th>
+            <th>Tourist</th>
             <th>
                 @Html.DisplayNameFor(model => model.Rating)
             </th>
@@ -31,13 +43,14 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+        @foreach (var item in Model)
+        {
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.BookingID)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.TouristID)
+                    @(item.Tourist?.FullName ?? $"Tourist #" + item.TouristID)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Rating)
@@ -46,7 +59,7 @@
                 @Html.DisplayFor(modelItem => item.Comment)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Date)
+                    @item.Date.ToLocalTime().ToString("g")
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.FeedbackID">Edit</a> |

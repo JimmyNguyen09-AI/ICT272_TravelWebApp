@@ -286,3 +286,4 @@ C:\Users\ngtru\source\repos\ICT272_Project\ICT272_Project\bin\Debug\net8.0\runti
 C:\Users\ngtru\source\repos\ICT272_Project\ICT272_Project\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Security.Cryptography.ProtectedData.dll
 C:\Users\ngtru\source\repos\ICT272_Project\ICT272_Project\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Windows.Extensions.dll
 C:\Users\ngtru\source\repos\ICT272_Project\ICT272_Project\obj\Debug\net8.0\ICT272_Project.sourcelink.json
+C:\Users\ngtru\source\repos\ICT272_Project\ICT272_Project\bin\Debug\net8.0\BCrypt.Net-Next.dll

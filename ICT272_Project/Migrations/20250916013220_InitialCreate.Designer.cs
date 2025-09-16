@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ICT272_Project.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250912144931_InitDb")]
-    partial class InitDb
+    [Migration("20250916013220_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -50,6 +50,8 @@ namespace ICT272_Project.Migrations
 
                     b.HasKey("FeedbackID");
 
+                    b.HasIndex("TouristID");
+
                     b.ToTable("Feedbacks");
                 });
 
@@ -61,9 +63,8 @@ namespace ICT272_Project.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PackageID"));
 
-                    b.Property<string>("AgencyID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("AgencyID")
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -84,6 +85,8 @@ namespace ICT272_Project.Migrations
                         .HasColumnType("nvarchar(150)");
 
                     b.HasKey("PackageID");
+
+                    b.HasIndex("AgencyID");
 
                     b.ToTable("TourPackages");
                 });
@@ -151,26 +154,72 @@ namespace ICT272_Project.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<int?>("TourPackagePackageID")
-                        .HasColumnType("int");
-
                     b.HasKey("AgencyID");
-
-                    b.HasIndex("TourPackagePackageID");
 
                     b.ToTable("TravelAgencies");
                 });
 
-            modelBuilder.Entity("ICT272_Project.Models.TravelAgency", b =>
+            modelBuilder.Entity("ICT272_Project.Models.User", b =>
                 {
-                    b.HasOne("ICT272_Project.Models.TourPackage", null)
-                        .WithMany("TravelAgency")
-                        .HasForeignKey("TourPackagePackageID");
+                    b.Property<int>("UserID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserID"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("UserID");
+
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ICT272_Project.Models.Feedback", b =>
+                {
+                    b.HasOne("ICT272_Project.Models.Tourist", "Tourist")
+                        .WithMany("Feedbacks")
+                        .HasForeignKey("TouristID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tourist");
                 });
 
             modelBuilder.Entity("ICT272_Project.Models.TourPackage", b =>
                 {
+                    b.HasOne("ICT272_Project.Models.TravelAgency", "TravelAgency")
+                        .WithMany("TourPackages")
+                        .HasForeignKey("AgencyID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("TravelAgency");
+                });
+
+            modelBuilder.Entity("ICT272_Project.Models.Tourist", b =>
+                {
+                    b.Navigation("Feedbacks");
+                });
+
+            modelBuilder.Entity("ICT272_Project.Models.TravelAgency", b =>
+                {
+                    b.Navigation("TourPackages");
                 });
 #pragma warning restore 612, 618
         }
