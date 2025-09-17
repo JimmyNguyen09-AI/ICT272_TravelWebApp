@@ -15,7 +15,7 @@
             <input type="hidden" asp-for="PackageID" />
             <div class="form-group">
                 <label asp-for="AgencyID" class="control-label"></label>
-                <input asp-for="AgencyID" class="form-control" />
+                <select asp-for="AgencyID" class="form-control" asp-items="ViewBag.Agencies"></select>
                 <span asp-validation-for="AgencyID" class="text-danger"></span>
             </div>
             <div class="form-group">

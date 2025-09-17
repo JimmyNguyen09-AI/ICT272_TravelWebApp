@@ -2,49 +2,78 @@
     ViewData["Title"] = "Home Page";
 }
 
-
-
 <div class="container mt-4">
     <div class="text-center">
         <h1 class="display-4">Welcome to Travel Booking System 🌍</h1>
         <p class="lead">Find and book amazing tours with trusted agencies.</p>
     </div>
 
-    <div class="row mt-5">
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <img src="~/images/tours.jpg" class="card-img-top" alt="Tours">
-                <div class="card-body">
-                    <h5 class="card-title">Browse Tours</h5>
-                    <p class="card-text">Explore available travel packages, prices, and details.</p>
-                    <a asp-controller="TourPackages" asp-action="Index" class="btn btn-primary">View Tours</a>
+    <!-- Featured Tours -->
+    <div class="container mt-5">
+        <h3 class="text-center mb-4 fw-bold text-uppercase">Featured Tours</h3>
+        <div class="row">
+            @foreach (var tour in ViewBag.Tours)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm h-100 border-0">
+                        <div class="position-relative" style="height:250px; border-radius:.5rem; overflow:hidden;">
+                            <img src="@tour.TourImage" alt="@tour.Title" class="w-100 h-100" style="object-fit:cover;" />
+                            <div class="position-absolute bottom-0 start-0 w-100 bg-dark bg-opacity-50 text-white p-3">
+                                <h5 class="fw-bold">@tour.Title</h5>
+                                <p class="mb-1">@tour.Description.Substring(0, Math.Min(60, tour.Description.Length))...</p>
+                                <p class="mb-1"><strong>Price:</strong> $@tour.Price</p>
+                                <p class="mb-2"><strong>Agency:</strong> @tour.TravelAgency?.AgencyName</p>
+                                <a asp-controller="TourPackages" asp-action="Details" asp-route-id="@tour.PackageID" class="btn btn-success btn-sm">View Details</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            }
         </div>
+    </div>
 
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <img src="~/images/agency.jpg" class="card-img-top" alt="Agency">
-                <div class="card-body">
-                    <h5 class="card-title">For Agencies</h5>
-                    <p class="card-text">Create and manage your travel packages easily.</p>
-                    <a asp-controller="TourPackages" asp-action="Create" class="btn btn-success">Add Package</a>
+    <!-- Our Agencies -->
+    <div class="container mt-5">
+        <h3 class="text-center mb-4 fw-bold text-uppercase">Our Agencies</h3>
+        <div class="row">
+            @foreach (var agency in ViewBag.Agencies)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm h-100 border-0">
+                        <div class="position-relative" style="height:250px; border-radius:.5rem; overflow:hidden;">
+                            <img src="@agency.ProfileImage" alt="@agency.AgencyName" class="w-100 h-100" style="object-fit:cover;" />
+                            <div class="position-absolute bottom-0 start-0 w-100 bg-dark bg-opacity-50 text-white p-3 text-center">
+                                <h5>@agency.AgencyName</h5>
+                                <p>@agency.Description</p>
+                                <a asp-controller="TravelAgencies" asp-action="Details" asp-route-id="@agency.AgencyID" class="btn btn-light btn-sm">View Agency</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            }
         </div>
+    </div>
 
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <img src="~/images/feedback.jpg" class="card-img-top" alt="Feedback">
-                <div class="card-body">
-                    <h5 class="card-title">Tourist Feedback</h5>
-                    <p class="card-text">See what other tourists say about their experiences.</p>
-                    <a asp-controller="Feedbacks" asp-action="Index" class="btn btn-info">View Feedback</a>
+    <!-- Recent Feedback -->
+    <div class="container mt-5">
+        <h3 class="text-center mb-4 fw-bold text-uppercase">Recent Feedback</h3>
+        <div class="row">
+            @foreach (var fb in ViewBag.Feedbacks)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm h-100 p-3">
+                        <blockquote class="blockquote mb-0">
+                            <p>"@fb.Comment"</p>
+                            <footer class="blockquote-footer">@fb.Tourist?.FullName</footer>
+                        </blockquote>
+                    </div>
                 </div>
-            </div>
+            }
         </div>
     </div>
 </div>
+
+<!-- Group Info -->
 <div class="container mt-5">
     <h3 class="text-center mb-4 fw-bold text-uppercase">Group Information</h3>
 
@@ -75,4 +104,3 @@
         </div>
     </div>
 </div>
-

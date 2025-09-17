@@ -23,6 +23,7 @@ namespace ICT272_Project.Models
         public decimal Price { get; set; }
         [Required(ErrorMessage ="Group size must be between 1 and 50")]
         public int MaxGroupSize { get; set; }
+        public string TourImage { get; set; }
 
     }
 }

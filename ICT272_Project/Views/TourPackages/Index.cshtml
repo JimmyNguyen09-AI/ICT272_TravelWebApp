@@ -1,65 +1,46 @@
 ﻿@model IEnumerable<ICT272_Project.Models.TourPackage>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Tour Packages";
 }
 
-<h1>Index</h1>
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Tour Packages</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.AgencyID)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Title)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Duration)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Price)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.MaxGroupSize)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.AgencyID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Title)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Duration)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Price)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MaxGroupSize)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.PackageID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.PackageID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.PackageID">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <div class="text-center mb-3">
+        <a asp-action="Create" class="btn btn-primary">Create New Package</a>
+    </div>
+
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    @if (!string.IsNullOrEmpty(item.TourImage))
+                    {
+                        <img src="@item.TourImage" class="card-img-top" alt="@item.Title" style="height:200px; object-fit:cover;" />
+                    }
+                    else
+                    {
+                        <img src="~/images/default-tour.jpg" class="card-img-top" alt="Default Tour" style="height:200px; object-fit:cover;" />
+                    }
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold">@item.Title</h5>
+                        <p class="card-text text-muted">
+                            <strong>Agency:</strong> @item.TravelAgency?.AgencyName
+                        </p>
+                        <p class="card-text">@item.Description</p>
+                        <p class="card-text"><strong>Duration:</strong> @item.Duration days</p>
+                        <p class="card-text"><strong>Group Size:</strong> @item.MaxGroupSize</p>
+                        <h6 class="text-success"><strong>Price:</strong> $@item.Price</h6>
+                    </div>
+                    <div class="card-footer text-center bg-light">
+                        <a asp-action="Details" asp-route-id="@item.PackageID" class="btn btn-sm btn-success">Details</a>
+                        <a asp-action="Edit" asp-route-id="@item.PackageID" class="btn btn-sm btn-warning">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@item.PackageID" class="btn btn-sm btn-danger">Delete</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

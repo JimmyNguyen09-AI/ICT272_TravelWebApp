@@ -1,59 +1,51 @@
 ﻿@model IEnumerable<ICT272_Project.Models.TravelAgency>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Travel Agencies";
 }
 
-<h1>Index</h1>
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Travel Agencies</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.AgencyName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ContactInfo)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ServicesOffered)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ProfileImage)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.AgencyName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ContactInfo)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ServicesOffered)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ProfileImage)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.AgencyID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.AgencyID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.AgencyID">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Agency"))
+    {
+        <div class="text-center mb-3">
+            <a asp-action="Create" class="btn btn-primary">Create New Agency</a>
+        </div>
+    }
+
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    @if (!string.IsNullOrEmpty(item.ProfileImage))
+                    {
+                        <img src="@item.ProfileImage" class="card-img-top" alt="@item.AgencyName" style="height:200px; object-fit:cover;" />
+                    }
+                    else
+                    {
+                        <img src="~/images/default-agency.jpg" class="card-img-top" alt="Default Agency" style="height:200px; object-fit:cover;" />
+                    }
+
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold">@item.AgencyName</h5>
+                        <p class="card-text"><strong>Contact:</strong> @item.ContactInfo</p>
+                        <p class="card-text">@item.Description</p>
+                        <p class="card-text text-muted"><i>@item.ServicesOffered</i></p>
+                    </div>
+
+                    <div class="card-footer text-center bg-light">
+                        <a asp-action="Details" asp-route-id="@item.AgencyID" class="btn btn-sm btn-success">Details</a>
+
+                        @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Agency"))
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.AgencyID" class="btn btn-sm btn-warning">Edit</a>
+                            <a asp-action="Delete" asp-route-id="@item.AgencyID" class="btn btn-sm btn-danger">Delete</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

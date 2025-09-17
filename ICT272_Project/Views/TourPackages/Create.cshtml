@@ -13,8 +13,8 @@
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="AgencyID" class="control-label"></label>
-                <input asp-for="AgencyID" class="form-control" />
+                <label asp-for="AgencyID" class="control-label"></label> 
+                <select asp-for="AgencyID" class="form-control" asp-items="ViewBag.Agencies"></select>
                 <span asp-validation-for="AgencyID" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -41,6 +41,10 @@
                 <label asp-for="MaxGroupSize" class="control-label"></label>
                 <input asp-for="MaxGroupSize" class="form-control" />
                 <span asp-validation-for="MaxGroupSize" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TourImage" class="control-label"></label>
+                <input asp-for="TourImage" class="form-control" placeholder="https://example.com/tour.jpg" />
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
