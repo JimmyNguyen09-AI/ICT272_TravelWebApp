@@ -22,8 +22,13 @@ namespace ICT272_Project.Controllers
         // GET: TourPackages
         public async Task<IActionResult> Index()
         {
-            return View(await _context.TourPackages.ToListAsync());
+            var packages = await _context.TourPackages
+                .Include(t => t.TravelAgency) 
+                .ToListAsync();
+
+            return View(packages);
         }
+
 
         // GET: TourPackages/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -55,7 +60,7 @@ namespace ICT272_Project.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("PackageID,AgencyID,Title,Description,Duration,Price,MaxGroupSize")] TourPackage tourPackage)
+        public async Task<IActionResult> Create([Bind("PackageID,AgencyID,Title,Description,Duration,Price,MaxGroupSize,TourImage")] TourPackage tourPackage)
         {
 
             if (ModelState.IsValid)
@@ -81,6 +86,8 @@ namespace ICT272_Project.Controllers
             {
                 return NotFound();
             }
+
+            ViewBag.Agencies = new SelectList(_context.TravelAgencies, "AgencyID", "AgencyName");
             return View(tourPackage);
         }
 
@@ -89,7 +96,7 @@ namespace ICT272_Project.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("PackageID,AgencyID,Title,Description,Duration,Price,MaxGroupSize")] TourPackage tourPackage)
+        public async Task<IActionResult> Edit(int id, [Bind("PackageID,AgencyID,Title,Description,Duration,Price,MaxGroupSize,TourImage")] TourPackage tourPackage)
         {
             if (id != tourPackage.PackageID)
             {
@@ -116,6 +123,8 @@ namespace ICT272_Project.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+
+            ViewBag.Agencies = new SelectList(_context.TravelAgencies, "AgencyID", "AgencyName");
             return View(tourPackage);
         }
 

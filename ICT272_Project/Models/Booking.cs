@@ -10,10 +10,12 @@ namespace ICT272_Project.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int BookingID { get; set; }
         [Required]
+        [ForeignKey("Tourist")]
         public int TouristID { get; set; }
         [ValidateNever]
         public Tourist Tourist { get; set; }
         [Required]
+        [ForeignKey("TourPackage")]
         public int PackageID { get; set; }
         [ValidateNever]
         public TourPackage TourPackage { get; set; }

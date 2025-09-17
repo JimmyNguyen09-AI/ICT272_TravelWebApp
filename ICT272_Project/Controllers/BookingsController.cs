@@ -48,7 +48,8 @@ namespace ICT272_Project.Controllers
         // GET: Bookings/Create
         public IActionResult Create()
         {
-            ViewData["TouristID"] = new SelectList(_context.Tourists, "TouristID", "Email");
+            ViewBag.Tourists = new SelectList(_context.Tourists, "TouristID", "FullName");
+            ViewBag.TourPackages = new SelectList(_context.TourPackages, "PackageID", "Title");
             return View();
         }
 
@@ -61,13 +62,6 @@ namespace ICT272_Project.Controllers
         {
             if (ModelState.IsValid)
             {
-                //var username = User.Identity.Name;
-                //var tourist = await _context.Tourists.FirstOrDefaultAsync(t => t.FullName = username);
-                //if (tourist == null) {
-                //    ModelState.AddModelError("", "Tourist account not found");
-                //    return View(booking);
-                //}
-                //booking.TouristID = tourist.TouristID;
                 var tourPackage = await _context.TourPackages.FindAsync(booking.PackageID);
                 if (tourPackage == null)
                 {
@@ -107,7 +101,7 @@ namespace ICT272_Project.Controllers
             {
                 return NotFound();
             }
-            ViewData["TouristID"] = new SelectList(_context.Tourists, "TouristID", "Email", booking.TouristID);
+            ViewData["TouristID"] = new SelectList(_context.Tourists, "TouristID", "FullName", booking.TouristID);
             return View(booking);
         }
 
