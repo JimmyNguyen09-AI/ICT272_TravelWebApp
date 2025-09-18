@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using ICT272_Project.Data;
+using ICT272_Project.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using ICT272_Project.Data;
-using ICT272_Project.Models;
 
 namespace ICT272_Project.Controllers
 {
@@ -28,70 +26,33 @@ namespace ICT272_Project.Controllers
         // GET: TravelAgencies/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var travelAgency = await _context.TravelAgencies
                 .FirstOrDefaultAsync(m => m.AgencyID == id);
-            if (travelAgency == null)
-            {
-                return NotFound();
-            }
 
-            return View(travelAgency);
-        }
+            if (travelAgency == null) return NotFound();
 
-        // GET: TravelAgencies/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: TravelAgencies/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("AgencyID,AgencyName,ContactInfo,Description,ServicesOffered,ProfileImage")] TravelAgency travelAgency)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(travelAgency);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
             return View(travelAgency);
         }
 
         // GET: TravelAgencies/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var travelAgency = await _context.TravelAgencies.FindAsync(id);
-            if (travelAgency == null)
-            {
-                return NotFound();
-            }
+            if (travelAgency == null) return NotFound();
+
             return View(travelAgency);
         }
 
         // POST: TravelAgencies/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("AgencyID,AgencyName,ContactInfo,Description,ServicesOffered,ProfileImage")] TravelAgency travelAgency)
+        public async Task<IActionResult> Edit(int id, [Bind("AgencyID,AgencyName,ContactInfo,Description,ServicesOffered,ProfileImage,UserID")] TravelAgency travelAgency)
         {
-            if (id != travelAgency.AgencyID)
-            {
-                return NotFound();
-            }
+            if (id != travelAgency.AgencyID) return NotFound();
 
             if (ModelState.IsValid)
             {
@@ -103,13 +64,9 @@ namespace ICT272_Project.Controllers
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!TravelAgencyExists(travelAgency.AgencyID))
-                    {
                         return NotFound();
-                    }
                     else
-                    {
                         throw;
-                    }
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -119,19 +76,14 @@ namespace ICT272_Project.Controllers
         // GET: TravelAgencies/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var travelAgency = await _context.TravelAgencies
+            var agency = await _context.TravelAgencies
                 .FirstOrDefaultAsync(m => m.AgencyID == id);
-            if (travelAgency == null)
-            {
-                return NotFound();
-            }
 
-            return View(travelAgency);
+            if (agency == null) return NotFound();
+
+            return View(agency);
         }
 
         // POST: TravelAgencies/Delete/5
@@ -139,14 +91,21 @@ namespace ICT272_Project.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var travelAgency = await _context.TravelAgencies.FindAsync(id);
-            if (travelAgency != null)
+            var agency = await _context.TravelAgencies.FindAsync(id);
+            if (agency != null)
             {
-                _context.TravelAgencies.Remove(travelAgency);
-            }
+                var user = await _context.Users.FindAsync(agency.UserID);
+                _context.TravelAgencies.Remove(agency);
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+                if (user != null)
+                {
+                    _context.Users.Remove(user);
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            await HttpContext.SignOutAsync(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Login", "Account");
         }
 
         private bool TravelAgencyExists(int id)

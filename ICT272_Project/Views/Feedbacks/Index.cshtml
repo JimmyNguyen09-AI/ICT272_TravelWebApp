@@ -1,35 +1,23 @@
 ﻿@model IEnumerable<ICT272_Project.Models.Feedback>
 
 @{
-    ViewData["Title"] = "Feedback";
+    ViewData["Title"] = "Index";
 }
 
-<h1 class="mb-3">Feedback</h1>
+<h1>Index</h1>
 
-@if (TempData["FeedbackMessage"] is string successMessage)
-{
-    <div class="alert alert-success" role="alert">@successMessage</div>
-}
-
-@if (TempData["FeedbackError"] is string errorMessage)
-{
-    <div class="alert alert-danger" role="alert">@errorMessage</div>
-}
-
-@if (User?.IsInRole("Tourist") == true)
-{
-    <p>
-        <a asp-action="Create" class="btn btn-primary">Leave Feedback</a>
-    </p>
-}
-
-<table class="table table-striped">
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
     <thead>
         <tr>
             <th>
                 @Html.DisplayNameFor(model => model.BookingID)
             </th>
-            <th>Tourist</th>
+            <th>
+                @Html.DisplayNameFor(model => model.TouristID)
+            </th>
             <th>
                 @Html.DisplayNameFor(model => model.Rating)
             </th>
@@ -43,14 +31,13 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model)
-        {
+@foreach (var item in Model) {
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.BookingID)
             </td>
             <td>
-                    @(item.Tourist?.FullName ?? $"Tourist #" + item.TouristID)
+                @Html.DisplayFor(modelItem => item.TouristID)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Rating)
@@ -59,13 +46,19 @@
                 @Html.DisplayFor(modelItem => item.Comment)
             </td>
             <td>
-                    @item.Date.ToLocalTime().ToString("g")
+                @Html.DisplayFor(modelItem => item.Date)
             </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.FeedbackID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.FeedbackID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.FeedbackID">Delete</a>
-            </td>
+                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    if (User.IsInRole("Tourist"))
+                    {
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@item.FeedbackID">Edit</a> |
+                            <a asp-action="Details" asp-route-id="@item.FeedbackID">Details</a> |
+                            <a asp-action="Delete" asp-route-id="@item.FeedbackID">Delete</a>
+                        </td>
+                    }
+                }
         </tr>
 }
     </tbody>

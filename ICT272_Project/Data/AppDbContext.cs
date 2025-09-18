@@ -15,5 +15,20 @@ namespace ICT272_Project.Data
 
         public DbSet<User> Users => Set<User>();
         public DbSet<Booking> Booking => Set<Booking>();
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Tourist>()
+                .HasOne(t => t.User)
+                .WithMany() 
+                .HasForeignKey(t => t.UserID)
+                .OnDelete(DeleteBehavior.Restrict); 
+
+            modelBuilder.Entity<TravelAgency>()
+                .HasOne(a => a.User)
+                .WithMany()
+                .HasForeignKey(a => a.UserID)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

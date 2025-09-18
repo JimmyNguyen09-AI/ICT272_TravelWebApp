@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 namespace ICT272_Project.Models
 {
@@ -19,6 +20,12 @@ namespace ICT272_Project.Models
 
         [StringLength(20)]
         public string? ContactNumber { get; set; }
+        [ForeignKey("User")]
+        public int UserID { get; set; }
+
+        [ValidateNever]
+        public User User { get; set; }
+
         public ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
     }
 

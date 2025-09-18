@@ -1,15 +1,19 @@
-﻿@model IEnumerable<ICT272_Project.Models.Booking>
+﻿@using System.Security.Claims
+@model IEnumerable<ICT272_Project.Models.Booking>
 
 @{
     ViewData["Title"] = "Bookings";
+    var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 }
 
 <div class="container mt-4">
     <h1 class="text-center mb-4">Bookings</h1>
-
-    <div class="text-center mb-3">
-        <a asp-action="Create" class="btn btn-primary"> Create New Booking</a>
-    </div>
+     @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Tourist"))
+    {
+        <div class="text-center mb-3">
+            <a asp-action="Create" class="btn btn-primary"> Create New Booking</a>
+        </div> 
+    }
 
     <div class="list-group">
         @foreach (var item in Model)
@@ -20,7 +24,7 @@
                     <small class="text-muted">@item.BookingDate.ToShortDateString()</small>
                 </div>
                 <p class="mb-1"><strong>Email:</strong> @item.Tourist?.Email</p>
-                <p class="mb-1"><strong>Package ID:</strong> @item.PackageID</p>
+                <p class="mb-1"><strong>Package Title:</strong> @item.TourPackage.Title</p>
                 <p class="mb-1">
                     <strong>Status:</strong>
                     <span class="badge @(item.Status == "Pending" ? "bg-warning" : "bg-success")">
@@ -29,11 +33,18 @@
                 </p>
                 <p class="mb-1"><strong>Participants:</strong> @item.NumberofPaticipants</p>
 
-                <div class="mt-2">
-                    <a asp-action="Details" asp-route-id="@item.BookingID" class="btn btn-sm btn-success">Details</a>
-                    <a asp-action="Edit" asp-route-id="@item.BookingID" class="btn btn-sm btn-warning">Edit</a>
-                    <a asp-action="Delete" asp-route-id="@item.BookingID" class="btn btn-sm btn-danger">Delete</a>
-                </div>
+
+                @if (User.Identity != null && User.Identity.IsAuthenticated && item.Tourist.UserID.ToString() == currentUserId)
+                {
+                    if (User.IsInRole("Tourist"))
+                    {
+                        <div class="mt-2">
+                            <a asp-action="Details" asp-route-id="@item.BookingID" class="btn btn-sm btn-success">Details</a>
+                            <a asp-action="Edit" asp-route-id="@item.BookingID" class="btn btn-sm btn-warning">Edit</a>
+                            <a asp-action="Delete" asp-route-id="@item.BookingID" class="btn btn-sm btn-danger">Delete</a>
+                        </div>
+                    }
+                }
             </div>
         }
     </div>

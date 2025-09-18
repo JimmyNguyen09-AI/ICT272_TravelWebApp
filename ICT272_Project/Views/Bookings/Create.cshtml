@@ -1,8 +1,10 @@
 ﻿@model ICT272_Project.Models.Booking
-
+@using System.Security.Claims
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Booking";
+    var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    var currentUserName = User.Identity?.Name;
 }
 
 <h2>Create Booking</h2>
@@ -10,12 +12,12 @@
 <form asp-action="Create" method="post">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
+    <!-- Hidden TouristID -->
+    <input type="hidden" asp-for="TouristID" value="@currentUserId" />
+
     <div class="form-group">
-        <label asp-for="TouristID" class="control-label">Tourist</label>
-        <select asp-for="TouristID" class="form-control" asp-items="ViewBag.Tourists">
-            <option value="">-- Select Tourist --</option>
-        </select>
-        <span asp-validation-for="TouristID" class="text-danger"></span>
+        <label class="control-label">Tourist</label>
+        <input class="form-control" value="@currentUserName" disabled />
     </div>
 
     <div class="form-group">
@@ -43,11 +45,12 @@
     <button type="submit" class="btn btn-primary mt-3">Create Booking</button>
 </form>
 
-
 <div>
     <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

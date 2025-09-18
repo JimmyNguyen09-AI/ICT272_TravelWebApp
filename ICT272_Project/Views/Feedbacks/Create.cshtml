@@ -2,49 +2,49 @@
 
 @{
     ViewData["Title"] = "Create";
-    var touristName = ViewBag.TouristName as string;
 }
 
-<h1>Share Your Experience</h1>
-<p class="text-muted">We value your feedback. Please tell us about your trip.</p>
+<h1>Create</h1>
 
-
+<h4>Feedback</h4>
+<hr />
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-4">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="TouristID" />
-
-            @if (!string.IsNullOrWhiteSpace(touristName))
-            {
-                <div class="form-group mb-3">
-                    <label class="control-label">Tourist</label>
-                    <input class="form-control" value="@touristName" readonly />
-                </div>
-            }
-
-            <div class="form-group mb-3">
+            <div class="form-group">
                 <label asp-for="BookingID" class="control-label"></label>
                 <input asp-for="BookingID" class="form-control" />
                 <span asp-validation-for="BookingID" class="text-danger"></span>
             </div>
-            
-            <div class="form-group mb-3">
+            <div class="form-group">
+                <label asp-for="TouristID" class="control-label"></label>
+                <input asp-for="TouristID" class="form-control" />
+                <span asp-validation-for="TouristID" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <label asp-for="Rating" class="control-label"></label>
-                <input asp-for="Rating" class="form-control" min="1" max="5" />
+                <input asp-for="Rating" class="form-control" />
                 <span asp-validation-for="Rating" class="text-danger"></span>
             </div>
-            <div class="form-group mb-3">
+            <div class="form-group">
                 <label asp-for="Comment" class="control-label"></label>
-                <textarea asp-for="Comment" class="form-control" rows="4"></textarea>
+                <input asp-for="Comment" class="form-control" />
                 <span asp-validation-for="Comment" class="text-danger"></span>
             </div>
-            <button type="submit" class="btn btn-primary">Submit Feedback</button>
+            <div class="form-group">
+                <label asp-for="Date" class="control-label"></label>
+                <input asp-for="Date" class="form-control" />
+                <span asp-validation-for="Date" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
         </form>
     </div>
 </div>
 
-<div class="mt-3">
+<div>
     <a asp-action="Index">Back to List</a>
 </div>
 

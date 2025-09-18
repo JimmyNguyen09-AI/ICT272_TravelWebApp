@@ -1,18 +1,13 @@
-﻿@model IEnumerable<ICT272_Project.Models.TravelAgency>
+﻿@using System.Security.Claims
+@model IEnumerable<ICT272_Project.Models.TravelAgency>
 
 @{
     ViewData["Title"] = "Travel Agencies";
+    var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 }
 
 <div class="container mt-4">
     <h1 class="text-center mb-4">Travel Agencies</h1>
-
-    @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Agency"))
-    {
-        <div class="text-center mb-3">
-            <a asp-action="Create" class="btn btn-primary">Create New Agency</a>
-        </div>
-    }
 
     <div class="row">
         @foreach (var item in Model)
@@ -38,7 +33,7 @@
                     <div class="card-footer text-center bg-light">
                         <a asp-action="Details" asp-route-id="@item.AgencyID" class="btn btn-sm btn-success">Details</a>
 
-                        @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Agency"))
+                        @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Agency") && item.UserID.ToString() == currentUserId)
                         {
                             <a asp-action="Edit" asp-route-id="@item.AgencyID" class="btn btn-sm btn-warning">Edit</a>
                             <a asp-action="Delete" asp-route-id="@item.AgencyID" class="btn btn-sm btn-danger">Delete</a>

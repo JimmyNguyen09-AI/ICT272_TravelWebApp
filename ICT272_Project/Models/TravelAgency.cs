@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -18,6 +19,11 @@ namespace ICT272_Project.Models
         [Required,StringLength(200, ErrorMessage ="Services offered text too long")]
         public string ServicesOffered { get; set; }
         public string ProfileImage { get; set; }
+        [ForeignKey("User")]
+        public int UserID { get; set; }
+
+        [ValidateNever]
+        public User User { get; set; }
 
         public ICollection<TourPackage> TourPackages { get; set; } = new List<TourPackage>();
 

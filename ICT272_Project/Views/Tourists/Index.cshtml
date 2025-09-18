@@ -1,20 +1,12 @@
-﻿@model IEnumerable<ICT272_Project.Models.Tourist>
+﻿@using System.Security.Claims
+@model IEnumerable<ICT272_Project.Models.Tourist>
 
 @{
     ViewData["Title"] = "Index";
+    var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 }
 
 <h1>Index</h1>
- @if (User.Identity != null && User.Identity.IsAuthenticated)
-{
-    if (User.IsInRole("Tourist"))
-    {
-
-        <p>
-            <a asp-action="Create">Create New</a>
-        </p>
-    }
-}
 <table class="table">
     <thead>
         <tr>
@@ -43,7 +35,7 @@
                 @Html.DisplayFor(modelItem => item.ContactNumber)
             </td>
 
-                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                @if (User.Identity != null && User.Identity.IsAuthenticated && item.UserID.ToString() == currentUserId)
                 {
                     if (User.IsInRole("Tourist"))
                     {

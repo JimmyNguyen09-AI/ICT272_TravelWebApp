@@ -1,13 +1,10 @@
-﻿using ICT272_Project.Models;
+﻿using ICT272_Project.Data;
+using ICT272_Project.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using ICT272_Project.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication;
 
 namespace ICT272_Project.Controllers
 {
@@ -25,7 +22,8 @@ namespace ICT272_Project.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register(User user)
         {
-            if(!ModelState.IsValid) return View(user);
+            if (!ModelState.IsValid) return View(user);
+
             user.UserName = user.UserName?.Trim() ?? string.Empty;
             user.Email = user.Email?.Trim() ?? string.Empty;
 
@@ -45,27 +43,48 @@ namespace ICT272_Project.Controllers
 
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password);
             user.Password = hashedPassword;
+
             _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            // Nếu là Tourist -> tạo tourist profile
             if (string.Equals(user.Role, "Tourist", StringComparison.OrdinalIgnoreCase))
             {
-                var existingTourist = _context.Tourists.FirstOrDefault(t => t.Email.ToLower() == normalizedEmail);
-                if (existingTourist == null)
+                if (!_context.Tourists.Any(t => t.Email.ToLower() == normalizedEmail))
                 {
                     _context.Tourists.Add(new Tourist
                     {
                         FullName = user.UserName,
                         Email = user.Email,
-                        PasswordHash = hashedPassword
+                        PasswordHash = hashedPassword,
+                        UserID = user.UserID
                     });
                 }
             }
+            // Nếu là Agency -> tạo agency profile
+            else if (string.Equals(user.Role, "Agency", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!_context.TravelAgencies.Any(a => a.AgencyName.ToLower() == normalizedUserName))
+                {
+                    _context.TravelAgencies.Add(new TravelAgency
+                    {
+                        AgencyName = user.UserName,
+                        ContactInfo = user.Email,
+                        Description = "New agency created",
+                        ServicesOffered = "Not specified yet",
+                        ProfileImage = "Please update your picture",
+                        UserID = user.UserID
+                    });
+                }
+            }
+
             await _context.SaveChangesAsync();
             return RedirectToAction("Login");
         }
 
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Login() => View(new LoginViewModel());
+        public IActionResult Login() => View();
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -73,7 +92,6 @@ namespace ICT272_Project.Controllers
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid) return View(model);
-            model.UserName = model.UserName?.Trim() ?? string.Empty;
 
             var user = _context.Users.FirstOrDefault(u =>
                 u.UserName.ToLower() == model.UserName.ToLower());
@@ -83,9 +101,9 @@ namespace ICT272_Project.Controllers
                 ModelState.AddModelError("", "Invalid Username or Password");
                 return View(model);
             }
-            await EnsureTouristProfileAsync(user);
+
             var claims = new List<Claim>
-     {
+            {
                 new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.Email, user.Email),
@@ -97,44 +115,17 @@ namespace ICT272_Project.Controllers
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-            return RedirectToAction("Index", "Home");
+            if (user.Role == "Agency")
+                return RedirectToAction("Index", "TravelAgencies");
+            else
+                return RedirectToAction("Index", "Home");
         }
-
-
 
         [HttpGet]
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login");
-        }
-        private async Task EnsureTouristProfileAsync(User user)
-        {
-            if (!string.Equals(user.Role, "Tourist", StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(user.Email))
-            {
-                return;
-            }
-
-            var normalizedEmail = user.Email.Trim().ToLower();
-            var existingTourist = _context.Tourists.FirstOrDefault(t => t.Email.ToLower() == normalizedEmail);
-            if (existingTourist != null)
-            {
-                return;
-            }
-
-            _context.Tourists.Add(new Tourist
-            {
-                FullName = user.UserName,
-                Email = user.Email,
-                PasswordHash = user.Password
-            });
-
-            await _context.SaveChangesAsync();
         }
     }
 }

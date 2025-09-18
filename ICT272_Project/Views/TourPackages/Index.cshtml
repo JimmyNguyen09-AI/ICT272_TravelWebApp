@@ -1,15 +1,20 @@
-﻿@model IEnumerable<ICT272_Project.Models.TourPackage>
+﻿@using System.Security.Claims
+@model IEnumerable<ICT272_Project.Models.TourPackage>
 
 @{
     ViewData["Title"] = "Tour Packages";
+    var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 }
 
 <div class="container mt-4">
     <h1 class="text-center mb-4">Tour Packages</h1>
-
-    <div class="text-center mb-3">
-        <a asp-action="Create" class="btn btn-primary">Create New Package</a>
-    </div>
+    
+     @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Agency"))
+    {
+        <div class="text-center mb-3">
+            <a asp-action="Create" class="btn btn-primary">Create New Package</a>
+        </div>
+    }
 
     <div class="row">
         @foreach (var item in Model)
@@ -36,8 +41,15 @@
                     </div>
                     <div class="card-footer text-center bg-light">
                         <a asp-action="Details" asp-route-id="@item.PackageID" class="btn btn-sm btn-success">Details</a>
-                        <a asp-action="Edit" asp-route-id="@item.PackageID" class="btn btn-sm btn-warning">Edit</a>
-                        <a asp-action="Delete" asp-route-id="@item.PackageID" class="btn btn-sm btn-danger">Delete</a>
+
+                        @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Agency"))
+                        {
+                            if (item.TravelAgency != null && item.TravelAgency.UserID.ToString() == currentUserId)
+                            {
+                                <a asp-action="Edit" asp-route-id="@item.PackageID" class="btn btn-sm btn-warning">Edit</a>
+                                <a asp-action="Delete" asp-route-id="@item.PackageID" class="btn btn-sm btn-danger">Delete</a>
+                            }
+                        }
                     </div>
                 </div>
             </div>
