@@ -1,6 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 namespace ICT272_Project.Models
 {
     public class Feedback
@@ -12,8 +13,9 @@ namespace ICT272_Project.Models
         [Required]
         public int BookingID { get; set; }
         [Required]
-        public int TouristID { get; set; }
         [ForeignKey("TouristID")]
+        public int TouristID { get; set; }
+        [ValidateNever]
         public Tourist Tourist { get; set; }
 
         [Range(1, 5)]

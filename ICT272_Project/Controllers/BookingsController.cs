@@ -71,7 +71,51 @@ namespace ICT272_Project.Controllers
         }
 
         // POST: Bookings/Create
-        // (đoạn này giữ nguyên như cũ)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("PackageID,BookingDate,NumberofPaticipants")] Booking booking)
+        {
+            if (ModelState.IsValid)
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var parsedUserId))
+                {
+                    ModelState.AddModelError("", "User is not logged in.");
+                    return View(booking);
+                }
+                var tourist = await _context.Tourists.FirstOrDefaultAsync(t => t.UserID == parsedUserId);
+                if (tourist == null)
+                {
+                    ModelState.AddModelError("", "Tourist account not found.");
+                    return View(booking);
+                }
+
+                booking.TouristID = tourist.TouristID;
+
+                var tourPackage = await _context.TourPackages.FindAsync(booking.PackageID);
+                if (tourPackage == null)
+                {
+                    ModelState.AddModelError("PackageID", "Invalid tour package selected");
+                    return View(booking);
+                }
+
+                if (booking.NumberofPaticipants > tourPackage.MaxGroupSize)
+                {
+                    ModelState.AddModelError("NumberofPaticipants", $"Group size cannot exceed {tourPackage.MaxGroupSize}");
+                    return View(booking);
+                }
+
+                booking.Status = "Pending";
+
+                _context.Add(booking);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+
+            ViewBag.TourPackages = new SelectList(_context.TourPackages, "PackageID", "Title", booking.PackageID);
+            return View(booking);
+        }
+
 
         // POST: Bookings/Edit/5
         [HttpPost]
