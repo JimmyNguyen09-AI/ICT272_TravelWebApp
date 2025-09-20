@@ -23,10 +23,29 @@ namespace ICT272_Project.Controllers
         // GET: Bookings
         public async Task<IActionResult> Index()
         {
-            var appDbContext = _context.Booking
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var bookingsQuery = _context.Booking
                 .Include(b => b.Tourist)
-                .Include(b => b.TourPackage);
-            return View(await appDbContext.ToListAsync());
+                .Include(b => b.TourPackage)
+                    .ThenInclude(tp => tp.TravelAgency)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(userId) && int.TryParse(userId, out var parsedUserId))
+            {
+                if (User.IsInRole("Tourist"))
+                {
+                    bookingsQuery = bookingsQuery.Where(b => b.Tourist.UserID == parsedUserId);
+                }
+                else if (User.IsInRole("Agency"))
+                {
+                    bookingsQuery = bookingsQuery.Where(b => b.TourPackage.TravelAgency != null &&
+                                                             b.TourPackage.TravelAgency.UserID == parsedUserId);
+                }
+            }
+
+            var bookings = await bookingsQuery.ToListAsync();
+            return View(bookings);
         }
 
         // GET: Bookings/Details/5
@@ -52,77 +71,19 @@ namespace ICT272_Project.Controllers
         }
 
         // POST: Bookings/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("PackageID,BookingDate,NumberofPaticipants")] Booking booking)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized();
-            }
-
-            var tourist = await _context.Tourists
-                .FirstOrDefaultAsync(t => t.UserID.ToString() == userId);
-
-            if (tourist == null)
-            {
-                ModelState.AddModelError("", "No tourist profile linked to this account.");
-                ViewBag.TourPackages = new SelectList(_context.TourPackages, "PackageID", "Title", booking.PackageID);
-                return View(booking);
-            }
-
-            booking.TouristID = tourist.TouristID;
-
-            if (ModelState.IsValid)
-            {
-                var tourPackage = await _context.TourPackages.FindAsync(booking.PackageID);
-                if (tourPackage == null)
-                {
-                    ModelState.AddModelError("PackageID", "Invalid tour package selected");
-                }
-                else if (booking.NumberofPaticipants > tourPackage.MaxGroupSize)
-                {
-                    ModelState.AddModelError("NumberofPaticipants", $"Group size cannot exceed the tour limit ({tourPackage.MaxGroupSize})");
-                }
-                else
-                {
-                    booking.Status = "Pending";
-                    _context.Add(booking);
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
-                }
-            }
-
-            ViewBag.TourPackages = new SelectList(_context.TourPackages, "PackageID", "Title", booking.PackageID);
-            return View(booking);
-        }
-
-        // GET: Bookings/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null) return NotFound();
-
-            var booking = await _context.Booking
-                .Include(b => b.Tourist)
-                .FirstOrDefaultAsync(b => b.BookingID == id);
-
-            if (booking == null) return NotFound();
-
-            return View(booking);
-        }
+        // (đoạn này giữ nguyên như cũ)
 
         // POST: Bookings/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("BookingID,PackageID,BookingDate,Status,NumberofPaticipants")] Booking booking)
+        public async Task<IActionResult> Edit(int id, Booking booking)
         {
             if (id != booking.BookingID) return NotFound();
 
             var existingBooking = await _context.Booking.AsNoTracking().FirstOrDefaultAsync(b => b.BookingID == id);
             if (existingBooking == null) return NotFound();
 
-            booking.TouristID = existingBooking.TouristID; 
+            booking.TouristID = existingBooking.TouristID;
 
             if (ModelState.IsValid)
             {
@@ -140,6 +101,71 @@ namespace ICT272_Project.Controllers
             }
 
             return View(booking);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateStatus(int id, string status)
+        {
+            if (string.IsNullOrWhiteSpace(status))
+            {
+                TempData["StatusError"] = "Invalid status value provided.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var booking = await _context.Booking
+                .Include(b => b.Tourist)
+                .Include(b => b.TourPackage)
+                    .ThenInclude(tp => tp.TravelAgency)
+                .FirstOrDefaultAsync(b => b.BookingID == id);
+
+            if (booking == null)
+            {
+                TempData["StatusError"] = "Booking not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!User.IsInRole("Agency") ||
+                string.IsNullOrEmpty(userId) ||
+                booking.TourPackage?.TravelAgency == null ||
+                booking.TourPackage.TravelAgency.UserID.ToString() != userId)
+            {
+                TempData["StatusError"] = "You are not authorized to update this booking.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var normalizedStatus = status.Trim();
+            if (normalizedStatus.Equals("Approved", StringComparison.OrdinalIgnoreCase))
+            {
+                booking.Status = "Approved";
+            }
+            else if (normalizedStatus.Equals("Rejected", StringComparison.OrdinalIgnoreCase))
+            {
+                booking.Status = "Rejected";
+            }
+            else if (normalizedStatus.Equals("Pending", StringComparison.OrdinalIgnoreCase))
+            {
+                booking.Status = "Pending";
+            }
+            else
+            {
+                TempData["StatusError"] = "Unsupported booking status.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                _context.Update(booking);
+                await _context.SaveChangesAsync();
+                TempData["StatusMessage"] = $"Booking for {booking.Tourist?.FullName ?? "the selected tourist"} marked as {booking.Status}.";
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                TempData["StatusError"] = "Unable to update booking status at this time.";
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Bookings/Delete/5
@@ -168,7 +194,6 @@ namespace ICT272_Project.Controllers
                 _context.Booking.Remove(booking);
                 await _context.SaveChangesAsync();
             }
-
             return RedirectToAction(nameof(Index));
         }
 

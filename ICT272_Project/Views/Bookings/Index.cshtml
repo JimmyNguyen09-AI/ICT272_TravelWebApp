@@ -1,4 +1,4 @@
-﻿@using System.Security.Claims
+﻿﻿@using System.Security.Claims
 @model IEnumerable<ICT272_Project.Models.Booking>
 
 @{
@@ -8,11 +8,28 @@
 
 <div class="container mt-4">
     <h1 class="text-center mb-4">Bookings</h1>
-     @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Tourist"))
+
+    @if (TempData["StatusMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["StatusMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["StatusError"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["StatusError"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Tourist"))
     {
         <div class="text-center mb-3">
             <a asp-action="Create" class="btn btn-primary"> Create New Booking</a>
-        </div> 
+        </div>
     }
 
     <div class="list-group">
@@ -27,12 +44,19 @@
                 <p class="mb-1"><strong>Package Title:</strong> @item.TourPackage.Title</p>
                 <p class="mb-1">
                     <strong>Status:</strong>
-                    <span class="badge @(item.Status == "Pending" ? "bg-warning" : "bg-success")">
+                    @{
+                        var statusClass = item.Status switch
+                        {
+                            var s when string.Equals(s, "Approved", System.StringComparison.OrdinalIgnoreCase) => "bg-success",
+                            var s when string.Equals(s, "Rejected", System.StringComparison.OrdinalIgnoreCase) => "bg-danger",
+                            _ => "bg-warning text-dark"
+                        };
+                    }
+                    <span class="badge @statusClass text-uppercase">
                         @item.Status
                     </span>
                 </p>
                 <p class="mb-1"><strong>Participants:</strong> @item.NumberofPaticipants</p>
-
 
                 @if (User.Identity != null && User.Identity.IsAuthenticated && item.Tourist.UserID.ToString() == currentUserId)
                 {
@@ -44,6 +68,29 @@
                             <a asp-action="Delete" asp-route-id="@item.BookingID" class="btn btn-sm btn-danger">Delete</a>
                         </div>
                     }
+                }
+                else if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Agency") && item.TourPackage?.TravelAgency?.UserID.ToString() == currentUserId)
+                {
+                    var isApproved = string.Equals(item.Status, "Approved", System.StringComparison.OrdinalIgnoreCase);
+                    var isRejected = string.Equals(item.Status, "Rejected", System.StringComparison.OrdinalIgnoreCase);
+                    var isPending = string.Equals(item.Status, "Pending", System.StringComparison.OrdinalIgnoreCase);
+                    <div class="mt-2">
+                        <form asp-action="UpdateStatus" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@item.BookingID" />
+                            <input type="hidden" name="status" value="Approved" />
+                            <button type="submit" class="btn btn-sm btn-success me-1" @(isApproved ? "disabled" : "")>Approve</button>
+                        </form>
+                        <form asp-action="UpdateStatus" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@item.BookingID" />
+                            <input type="hidden" name="status" value="Rejected" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger me-1" @(isRejected ? "disabled" : "")>Reject</button>
+                        </form>
+                        <form asp-action="UpdateStatus" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@item.BookingID" />
+                            <input type="hidden" name="status" value="Pending" />
+                            <button type="submit" class="btn btn-sm btn-outline-secondary" @(isPending ? "disabled" : "")>Mark Pending</button>
+                        </form>
+                    </div>
                 }
             </div>
         }

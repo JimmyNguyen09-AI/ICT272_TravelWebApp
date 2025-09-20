@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -22,7 +23,39 @@ namespace ICT272_Project.Controllers
         // GET: Feedbacks
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Feedbacks.ToListAsync());
+            var feedbacksQuery = _context.Feedbacks
+                .Include(f => f.Tourist)
+                .AsQueryable();
+
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!string.IsNullOrEmpty(userIdValue) && User.IsInRole("Tourist") && int.TryParse(userIdValue, out var userId))
+            {
+                feedbacksQuery = feedbacksQuery.Where(f => f.Tourist != null && f.Tourist.UserID == userId);
+            }
+
+            var feedbacks = await feedbacksQuery
+                .OrderByDescending(f => f.Date)
+                .ToListAsync();
+
+            var bookingLookup = new Dictionary<int, string>();
+            var bookingIds = feedbacks.Select(f => f.BookingID).Distinct().ToList();
+
+            if (bookingIds.Any())
+            {
+                bookingLookup = await _context.Booking
+                    .Where(b => bookingIds.Contains(b.BookingID))
+                    .Include(b => b.TourPackage)
+                    .ToDictionaryAsync(
+                        b => b.BookingID,
+                        b => string.IsNullOrWhiteSpace(b.TourPackage?.Title)
+                            ? $"Booking #{b.BookingID}"
+                            : b.TourPackage.Title);
+            }
+
+            ViewBag.BookingLookup = bookingLookup;
+
+            return View(feedbacks);
         }
 
         // GET: Feedbacks/Details/5
@@ -44,26 +77,104 @@ namespace ICT272_Project.Controllers
         }
 
         // GET: Feedbacks/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create(int? bookingId)
         {
-            return View();
+            var tourist = await GetCurrentTouristAsync();
+            if (tourist == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            await PopulateApprovedBookingsAsync(tourist.TouristID, bookingId);
+
+            var feedback = new Feedback
+            {
+                BookingID = bookingId ?? 0,
+                TouristID = tourist.TouristID
+            };
+
+            return View(feedback);
         }
 
         // POST: Feedbacks/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("FeedbackID,BookingID,TouristID,Rating,Comment,Date")] Feedback feedback)
+        public async Task<IActionResult> Create([Bind("BookingID,Rating,Comment")] Feedback feedback)
         {
-            if (ModelState.IsValid)
+            var tourist = await GetCurrentTouristAsync();
+            if (tourist == null)
             {
-                _context.Add(feedback);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Login", "Account");
             }
-            return View(feedback);
+
+            ModelState.Remove(nameof(Feedback.TouristID));
+            ModelState.Remove(nameof(Feedback.Date));
+
+            var approvedBooking = await _context.Booking
+                .FirstOrDefaultAsync(b =>
+                    b.BookingID == feedback.BookingID &&
+                    b.TouristID == tourist.TouristID);
+
+            if (approvedBooking == null ||
+                !string.Equals(approvedBooking.Status, "Approved", StringComparison.OrdinalIgnoreCase))
+            {
+                ModelState.AddModelError("BookingID", "Please select an approved booking that belongs to you.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await PopulateApprovedBookingsAsync(tourist.TouristID, feedback.BookingID);
+                return View(feedback);
+            }
+
+            feedback.TouristID = tourist.TouristID;
+            feedback.Date = DateTime.UtcNow;
+
+            _context.Add(feedback);
+            await _context.SaveChangesAsync();
+
+            TempData["FeedbackSuccess"] = "Thank you! Your feedback has been submitted.";
+            return RedirectToAction(nameof(Index));
         }
+
+        private async Task<Tourist?> GetCurrentTouristAsync()
+        {
+            if (!User.Identity?.IsAuthenticated ?? true) return null;
+
+            if (!User.IsInRole("Tourist")) return null;
+
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdValue) || !int.TryParse(userIdValue, out var userId))
+            {
+                return null;
+            }
+
+            return await _context.Tourists.FirstOrDefaultAsync(t => t.UserID == userId);
+        }
+
+        private async Task PopulateApprovedBookingsAsync(int touristId, int? selectedBookingId)
+        {
+            var approvedBookings = await _context.Booking
+                .Where(b => b.TouristID == touristId && b.Status != null && b.Status.ToLower() == "approved")
+                .Include(b => b.TourPackage)
+                .OrderByDescending(b => b.BookingDate)
+                .ToListAsync();
+
+            var bookingItems = approvedBookings
+                .Select(b => new SelectListItem
+                {
+                    Value = b.BookingID.ToString(),
+                    Text = string.IsNullOrWhiteSpace(b.TourPackage?.Title)
+                        ? $"Booking #{b.BookingID}"
+                        : $"#{b.BookingID} - {b.TourPackage.Title}",
+                    Selected = selectedBookingId.HasValue && selectedBookingId.Value == b.BookingID
+                })
+                .ToList();
+
+            ViewBag.Bookings = bookingItems;
+            ViewBag.HasApprovedBookings = bookingItems.Any();
+        }
+
 
         // GET: Feedbacks/Edit/5
         public async Task<IActionResult> Edit(int? id)
@@ -82,8 +193,6 @@ namespace ICT272_Project.Controllers
         }
 
         // POST: Feedbacks/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("FeedbackID,BookingID,TouristID,Rating,Comment,Date")] Feedback feedback)
@@ -114,39 +223,6 @@ namespace ICT272_Project.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return View(feedback);
-        }
-
-        // GET: Feedbacks/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var feedback = await _context.Feedbacks
-                .FirstOrDefaultAsync(m => m.FeedbackID == id);
-            if (feedback == null)
-            {
-                return NotFound();
-            }
-
-            return View(feedback);
-        }
-
-        // POST: Feedbacks/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var feedback = await _context.Feedbacks.FindAsync(id);
-            if (feedback != null)
-            {
-                _context.Feedbacks.Remove(feedback);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
         }
 
         private bool FeedbackExists(int id)

@@ -1,106 +1,210 @@
-﻿@{
+﻿@using System.Linq
+@using ICT272_Project.Models
+
+@{
     ViewData["Title"] = "Home Page";
+    var tours = ViewBag.Tours as IEnumerable<TourPackage>;
+    var agencies = ViewBag.Agencies as IEnumerable<TravelAgency>;
+    var feedbacks = ViewBag.Feedbacks as IEnumerable<Feedback>;
 }
 
-<div class="container mt-4">
-    <div class="text-center">
-        <h1 class="display-4">Welcome to Travel Booking System 🌍</h1>
-        <p class="lead">Find and book amazing tours with trusted agencies.</p>
+<div class="home-page">
+    <div class="home-hero text-white text-center mb-5 position-relative overflow-hidden">
+        <div class="hero-overlay"></div>
+        <div class="hero-content position-relative container py-5">
+            <span class="hero-badge">Discover your next adventure</span>
+            <h1 class="display-4 fw-bold mb-3">Plan unforgettable trips with trusted experts 🌍</h1>
+            <p class="lead mb-4 text-white-50">We curate immersive experiences across the globe and connect you with agencies who know every hidden gem.</p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a asp-controller="TourPackages" asp-action="Index" class="btn btn-light btn-lg shadow-sm px-4 btn-hero">Browse Tours</a>
+                <a asp-controller="TravelAgencies" asp-action="Index" class="btn btn-outline-light btn-lg px-4">Meet Agencies</a>
+            </div>
+
+            <div class="row g-3 hero-stats mt-5">
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <span class="stat-value">50+</span>
+                        <span class="stat-label">Destinations</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <span class="stat-value">4.8/5</span>
+                        <span class="stat-label">Average Rating</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <span class="stat-value">1200+</span>
+                        <span class="stat-label">Happy Travelers</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card">
+                        <span class="stat-value">24/7</span>
+                        <span class="stat-label">Expert Support</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-shape"></div>
     </div>
 
-    <!-- Featured Tours -->
-    <div class="container mt-5">
-        <h3 class="text-center mb-4 fw-bold text-uppercase">Featured Tours</h3>
-        <div class="row">
-            @foreach (var tour in ViewBag.Tours)
-            {
-                <div class="col-md-4 mb-4">
-                    <div class="card shadow-sm h-100 border-0">
-                        <div class="position-relative" style="height:250px; border-radius:.5rem; overflow:hidden;">
-                            <img src="@tour.TourImage" alt="@tour.Title" class="w-100 h-100" style="object-fit:cover;" />
-                            <div class="position-absolute bottom-0 start-0 w-100 bg-dark bg-opacity-50 text-white p-3">
-                                <h5 class="fw-bold">@tour.Title</h5>
-                                <p class="mb-1">@tour.Description.Substring(0, Math.Min(60, tour.Description.Length))...</p>
-                                <p class="mb-1"><strong>Price:</strong> $@tour.Price</p>
-                                <p class="mb-2"><strong>Agency:</strong> @tour.TravelAgency?.AgencyName</p>
-                                <a asp-controller="TourPackages" asp-action="Details" asp-route-id="@tour.PackageID" class="btn btn-success btn-sm">View Details</a>
+    <div class="home-content container px-0">
+        <section class="section-spacing">
+            <div class="section-heading text-center">
+                <span class="section-badge">Curated Experiences</span>
+                <h2 class="section-title">Featured Tours</h2>
+                <p class="section-subtitle">Handpicked adventures to spark your wanderlust.</p>
+            </div>
+
+            <div class="row g-4">
+                @if (tours?.Any() == true)
+                {
+                    foreach (var tour in tours)
+                    {
+                        var preview = tour.Description.Length > 90 ? tour.Description.Substring(0, 90) + "..." : tour.Description;
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card tour-card h-100 border-0 shadow-sm card-lift">
+                                <div class="tour-image-wrapper">
+                                    <img src="@tour.TourImage" alt="@tour.Title" class="w-100 h-100 object-fit-cover" />
+                                    <span class="badge bg-price badge-floating">From $@tour.Price</span>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title fw-bold">@tour.Title</h5>
+                                    <p class="card-text text-muted">@preview</p>
+                                    <div class="tour-meta d-flex flex-wrap gap-3 text-muted small mt-3">
+                                        <span>⏱️ @tour.Duration days</span>
+                                        <span>👥 @tour.MaxGroupSize people</span>
+                                        <span>🧭 @tour.TravelAgency?.AgencyName</span>
+                                    </div>
+                                    <a asp-controller="TourPackages" asp-action="Details" asp-route-id="@tour.PackageID" class="btn btn-gradient w-100 mt-4">View Details</a>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            }
-        </div>
-    </div>
-
-    <!-- Our Agencies -->
-    <div class="container mt-5">
-        <h3 class="text-center mb-4 fw-bold text-uppercase">Our Agencies</h3>
-        <div class="row">
-            @foreach (var agency in ViewBag.Agencies)
-            {
-                <div class="col-md-4 mb-4">
-                    <div class="card shadow-sm h-100 border-0">
-                        <div class="position-relative" style="height:250px; border-radius:.5rem; overflow:hidden;">
-                            <img src="@agency.ProfileImage" alt="@agency.AgencyName" class="w-100 h-100" style="object-fit:cover;" />
-                            <div class="position-absolute bottom-0 start-0 w-100 bg-dark bg-opacity-50 text-white p-3 text-center">
-                                <h5>@agency.AgencyName</h5>
-                                <p>@agency.Description</p>
-                                <a asp-controller="TravelAgencies" asp-action="Details" asp-route-id="@agency.AgencyID" class="btn btn-light btn-sm">View Agency</a>
-                            </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="empty-state text-center py-5">
+                            <h5 class="fw-semibold mb-2">No tours available right now</h5>
+                            <p class="text-muted mb-0">Check back soon to discover our latest curated adventures.</p>
                         </div>
                     </div>
-                </div>
-            }
-        </div>
-    </div>
+                }
+            </div>
+        </section>
 
-    <!-- Recent Feedback -->
-    <div class="container mt-5">
-        <h3 class="text-center mb-4 fw-bold text-uppercase">Recent Feedback</h3>
-        <div class="row">
-            @foreach (var fb in ViewBag.Feedbacks)
-            {
-                <div class="col-md-4 mb-4">
-                    <div class="card shadow-sm h-100 p-3">
-                        <blockquote class="blockquote mb-0">
-                            <p>"@fb.Comment"</p>
-                            <footer class="blockquote-footer">@fb.Tourist?.FullName</footer>
-                        </blockquote>
+        <section class="section-spacing">
+            <div class="section-heading text-center">
+                <span class="section-badge">Our Partners</span>
+                <h2 class="section-title">Trusted Travel Agencies</h2>
+                <p class="section-subtitle">Meet the experts behind every seamless getaway.</p>
+            </div>
+
+            <div class="row g-4">
+                @if (agencies?.Any() == true)
+                {
+                    foreach (var agency in agencies)
+                    {
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card agency-card h-100 border-0 shadow-sm card-lift">
+                                <div class="agency-image-wrapper">
+                                    <img src="@agency.ProfileImage" alt="@agency.AgencyName" class="w-100 h-100 object-fit-cover" />
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title fw-bold">@agency.AgencyName</h5>
+                                    <p class="card-text text-muted">@agency.Description</p>
+                                    <div class="d-flex align-items-center gap-2 text-muted small mt-3">
+                                        <span class="tilt-icon">📞</span>
+                                        <span>@agency.ContactInfo</span>
+                                    </div>
+                                    <p class="card-text text-muted small mt-2"><span class="text-highlight">Services:</span> @agency.ServicesOffered</p>
+                                    <a asp-controller="TravelAgencies" asp-action="Details" asp-route-id="@agency.AgencyID" class="btn btn-outline-primary w-100 mt-3">View Agency</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="empty-state text-center py-5">
+                            <h5 class="fw-semibold mb-2">No agencies to display</h5>
+                            <p class="text-muted mb-0">New partner agencies will appear here as soon as they are available.</p>
+                        </div>
                     </div>
+                }
+            </div>
+        </section>
+
+        <section class="section-spacing">
+            <div class="section-heading text-center">
+                <span class="section-badge">Voices of Travelers</span>
+                <h2 class="section-title">Recent Feedback</h2>
+                <p class="section-subtitle">Stories shared by explorers who booked with us.</p>
+            </div>
+
+            <div class="row g-4">
+                @if (feedbacks?.Any() == true)
+                {
+                    foreach (var fb in feedbacks)
+                    {
+                        <div class="col-md-6 col-lg-4">
+                            <div class="quote-card h-100">
+                                <div class="quote-icon">“</div>
+                                <p class="mb-4">"@fb.Comment"</p>
+                                <div class="quote-author">@fb.Tourist?.FullName</div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="empty-state text-center py-5">
+                            <h5 class="fw-semibold mb-2">No feedback just yet</h5>
+                            <p class="text-muted mb-0">Be the first to share your experience after booking a tour.</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </section>
+
+        <section class="section-spacing pb-0">
+            <div class="section-heading text-center">
+                <span class="section-badge">Meet the Team</span>
+                <h2 class="section-title">Group Information</h2>
+                <p class="section-subtitle">The students behind the Travel Booking System.</p>
+            </div>
+
+            <div class="card border-0 shadow-sm group-card overflow-hidden">
+                <div class="table-responsive mb-0">
+                    <table class="table table-hover table-borderless mb-0 group-table text-center align-middle">
+                        <thead>
+                            <tr>
+                                <th class="text-uppercase text-muted small">Student ID</th>
+                                <th class="text-uppercase text-muted small">Full Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>12300486</td>
+                                <td>Trung Thanh NGUYEN</td>
+                            </tr>
+                            <tr>
+                                <td>12301239</td>
+                                <td>Trung Hop DO</td>
+                            </tr>
+                            <tr>
+                                <td>12300788</td>
+                                <td>Quang Hung LUU</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-            }
-        </div>
-    </div>
-</div>
-
-<!-- Group Info -->
-<div class="container mt-5">
-    <h3 class="text-center mb-4 fw-bold text-uppercase">Group Information</h3>
-
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <table class="table table-hover text-center align-middle">
-                <thead class="table-primary">
-                    <tr>
-                        <th>Student ID</th>
-                        <th>Full Name</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>12300486</td>
-                        <td>Trung Thanh NGUYEN</td>
-                    </tr>
-                    <tr>
-                        <td>12301239</td>
-                        <td>Trung Hop DO</td>
-                    </tr>
-                    <tr>
-                        <td>12300788</td>
-                        <td>Quang Hung LUU</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+            </div>
+        </section>
     </div>
 </div>

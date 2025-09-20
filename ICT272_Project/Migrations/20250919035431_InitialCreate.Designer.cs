@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ICT272_Project.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250916013220_InitialCreate")]
+    [Migration("20250919035431_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -24,6 +24,40 @@ namespace ICT272_Project.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("ICT272_Project.Models.Booking", b =>
+                {
+                    b.Property<int>("BookingID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingID"));
+
+                    b.Property<DateTime>("BookingDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("NumberofPaticipants")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PackageID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("TouristID")
+                        .HasColumnType("int");
+
+                    b.HasKey("BookingID");
+
+                    b.HasIndex("PackageID");
+
+                    b.HasIndex("TouristID");
+
+                    b.ToTable("Booking");
+                });
 
             modelBuilder.Entity("ICT272_Project.Models.Feedback", b =>
                 {
@@ -84,6 +118,10 @@ namespace ICT272_Project.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<string>("TourImage")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("PackageID");
 
                     b.HasIndex("AgencyID");
@@ -118,7 +156,12 @@ namespace ICT272_Project.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<int>("UserID")
+                        .HasColumnType("int");
+
                     b.HasKey("TouristID");
+
+                    b.HasIndex("UserID");
 
                     b.ToTable("Tourists");
                 });
@@ -154,7 +197,12 @@ namespace ICT272_Project.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<int>("UserID")
+                        .HasColumnType("int");
+
                     b.HasKey("AgencyID");
+
+                    b.HasIndex("UserID");
 
                     b.ToTable("TravelAgencies");
                 });
@@ -190,6 +238,25 @@ namespace ICT272_Project.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("ICT272_Project.Models.Booking", b =>
+                {
+                    b.HasOne("ICT272_Project.Models.TourPackage", "TourPackage")
+                        .WithMany()
+                        .HasForeignKey("PackageID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ICT272_Project.Models.Tourist", "Tourist")
+                        .WithMany()
+                        .HasForeignKey("TouristID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TourPackage");
+
+                    b.Navigation("Tourist");
+                });
+
             modelBuilder.Entity("ICT272_Project.Models.Feedback", b =>
                 {
                     b.HasOne("ICT272_Project.Models.Tourist", "Tourist")
@@ -210,6 +277,28 @@ namespace ICT272_Project.Migrations
                         .IsRequired();
 
                     b.Navigation("TravelAgency");
+                });
+
+            modelBuilder.Entity("ICT272_Project.Models.Tourist", b =>
+                {
+                    b.HasOne("ICT272_Project.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ICT272_Project.Models.TravelAgency", b =>
+                {
+                    b.HasOne("ICT272_Project.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ICT272_Project.Models.Tourist", b =>
