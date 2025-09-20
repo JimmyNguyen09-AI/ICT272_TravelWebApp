@@ -114,9 +114,11 @@ namespace ICT272_Project.Controllers
                 .FirstOrDefaultAsync(b =>
                     b.BookingID == feedback.BookingID &&
                     b.TouristID == tourist.TouristID);
+            var approvedStatus = approvedBooking?.Status?.Trim();
+            var normalizedApprovedStatus = approvedStatus?.ToUpperInvariant();
 
             if (approvedBooking == null ||
-                !string.Equals(approvedBooking.Status, "Approved", StringComparison.OrdinalIgnoreCase))
+               !string.Equals(normalizedApprovedStatus, "APPROVED", StringComparison.Ordinal))
             {
                 ModelState.AddModelError("BookingID", "Please select an approved booking that belongs to you.");
             }
@@ -155,7 +157,10 @@ namespace ICT272_Project.Controllers
         private async Task PopulateApprovedBookingsAsync(int touristId, int? selectedBookingId)
         {
             var approvedBookings = await _context.Booking
-                .Where(b => b.TouristID == touristId && b.Status != null && b.Status.ToLower() == "approved")
+                .Where(b =>
+                    b.TouristID == touristId &&
+                    b.Status != null &&
+                    b.Status.Trim().ToUpper() == "APPROVED")
                 .Include(b => b.TourPackage)
                 .OrderByDescending(b => b.BookingDate)
                 .ToListAsync();

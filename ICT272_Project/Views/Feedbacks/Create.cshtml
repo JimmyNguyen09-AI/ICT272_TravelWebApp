@@ -6,6 +6,9 @@
     ViewData["Title"] = "Share Feedback";
     var bookingOptions = (IEnumerable<SelectListItem>)(ViewBag.Bookings ?? Enumerable.Empty<SelectListItem>());
     var hasApprovedBookings = ViewBag.HasApprovedBookings as bool? ?? bookingOptions.Any();
+
+    var disableSelectAttribute = hasApprovedBookings ? string.Empty : " disabled=\"disabled\"";
+    var disableButtonAttribute = hasApprovedBookings ? string.Empty : " disabled";
 }
 
 <div class="container py-4 py-md-5">
@@ -15,29 +18,35 @@
                 <div class="card-body p-4 p-md-5">
                     <h1 class="h3 mb-3 text-center text-md-start">Share Your Experience</h1>
                     <p class="text-muted mb-4 text-center text-md-start">
-                        Choose the approved booking you would like to review and tell us how everything went. Your feedback helps agencies improve their services for future travellers.
+                        Choose the approved booking you would like to review and tell us how everything went. 
+                        Your feedback helps agencies improve their services for future travellers.
                     </p>
 
-                    <form asp-action="Create" novalidate>
+                    <form asp-action="Create" method="post" novalidate>
+                        @Html.AntiForgeryToken()
+
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                         <div class="mb-3">
                             <label asp-for="BookingID" class="form-label fw-semibold">Approved Booking</label>
-                            <!-- SỬA 1: dùng boolean binding cho disabled -->
                             <select asp-for="BookingID"
                                     class="form-select"
                                     asp-items="bookingOptions"
-                                    disabled="@(!hasApprovedBookings)">
+                                    disabled="@(hasApprovedBookings ? null : "disabled")">
                                 <option value="">Select a booking to review</option>
                             </select>
-                            <small class="form-text text-muted">Use the booking reference shown on your approved reservations.</small>
+                            <small class="form-text text-muted">
+                                Use the booking reference shown on your approved reservations.
+                            </small>
                             <span asp-validation-for="BookingID" class="text-danger"></span>
                         </div>
+
 
                         @if (!hasApprovedBookings)
                         {
                             <div class="alert alert-info" role="alert">
-                                You don't have any approved bookings yet. Once a booking is approved, its reference will appear here so you can submit your feedback.
+                                You don't have any approved bookings yet. Once a booking is approved,
+                                its reference will appear here so you can submit your feedback.
                             </div>
                         }
 
@@ -49,14 +58,14 @@
                             </div>
                             <div class="col-md-8">
                                 <label asp-for="Comment" class="form-label fw-semibold">Comment</label>
-                                <textarea asp-for="Comment" class="form-control" rows="4" placeholder="Share highlights, suggestions, or anything else you'd like us to know."></textarea>
+                                <textarea asp-for="Comment" class="form-control" rows="4"
+                                          placeholder="Share highlights, suggestions, or anything else you'd like us to know."></textarea>
                                 <span asp-validation-for="Comment" class="text-danger"></span>
                             </div>
                         </div>
 
                         <div class="mt-4 d-flex gap-2">
-                          
-                            <button type="submit" class="btn btn-primary px-4" disabled="@(!hasApprovedBookings)">
+                            <button type="submit" class="btn btn-primary px-4" @Html.Raw(disableButtonAttribute)>
                                 Submit Feedback
                             </button>
                             <a asp-action="Index" class="btn btn-outline-secondary">Back to Feedback</a>
@@ -69,7 +78,5 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }
